@@ -3,3 +3,5 @@ StockerDataFetcher/target/classes/com/stocker/providers/models/Sector.class
 StockerDataFetcher/target/classes/com/stocker/providers/models/Sector.class
 StockerDataFetcher/target/classes/com/stocker/providers/SectorsProvider.class
 *.class
+*.class
+StockerDataFetcher/target/classes/com/stocker/providers/models/Sector.class

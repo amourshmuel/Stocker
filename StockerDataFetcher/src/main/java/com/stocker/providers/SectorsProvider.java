@@ -2,13 +2,17 @@ package com.stocker.providers;
 
 import com.stocker.providers.models.Sector;
 import com.stocker.utils.WebClientFactory;
+import com.stocker.utils.serializer.csv.DoubleConverter;
 import net.sf.jsefa.Deserializer;
+import net.sf.jsefa.common.lowlevel.filter.HeaderAndFooterFilter;
 import net.sf.jsefa.csv.CsvIOFactory;
+import net.sf.jsefa.csv.config.CsvConfiguration;
 import org.apache.cxf.jaxrs.client.WebClient;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
@@ -51,24 +55,21 @@ public class SectorsProvider {
             throw new RuntimeException("Authorization failed");
         }
 
-        InputStream in = (InputStream) response.getEntity();
-        BufferedReader buffReader = new BufferedReader(new InputStreamReader(in));
-        StringBuilder result = new StringBuilder();
-        String line;
-        while((line = buffReader.readLine()) != null) {
-            result.append(line);
-            result.append("\n");
-        }
+        InputStream is = (InputStream) response.getEntity();
+        CsvConfiguration config = new CsvConfiguration();
+               config.setLineFilter(new HeaderAndFooterFilter(1, false, true));
+        config.setFieldDelimiter(',');
+        config.getSimpleTypeConverterProvider().registerConverterType(Double.class, DoubleConverter.class);
+        Sector p =null;
+        Deserializer deserializer = CsvIOFactory.createFactory(config,Sector.class).createDeserializer();
 
-        Deserializer deserializer = CsvIOFactory.createFactory(Sector.class).createDeserializer();
-        StringReader reader = new StringReader(result.toString());
-        deserializer.open(reader);
+        ArrayList<Sector> list=new ArrayList<>();
+        deserializer.open(new InputStreamReader(is));
         while (deserializer.hasNext()) {
-            Sector p = deserializer.next();
-            // do something useful with it
+            list.add(deserializer.next());
         }
         deserializer.close(true);
 
-        return null;
+        return list;
     }
 }
